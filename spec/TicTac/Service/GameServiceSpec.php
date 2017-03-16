@@ -99,5 +99,38 @@ class GameServiceSpec extends CommonServiceSpec
         
         $this->beConstructedWith($userRepo->reveal(), $gameRepo->reveal());
         $this->makeMove($gameId, $userId, $pos)->shouldBe(true);        
-    }    
+    }
+
+    function it_should_throw_game_not_found_on_get_status()
+    {
+        $faker = \Faker\Factory::create();
+        $gameId = $faker->randomNumber(1);
+        $gameRepo = $this->getGameRepo();
+        $gameRepo->findById($gameId)->willReturn(false);
+        
+        $this->beConstructedWith($this->getUserRepo()->reveal(), $gameRepo->reveal());
+        $this->shouldThrow('\TicTac\Exception\EntityNotFoundException')->duringGetStatus($gameId); 
+    }
+    
+    function it_should_get_status()
+    {
+        $faker = \Faker\Factory::create();
+        $hasFinished = $faker->boolean;
+        $winnerId = $faker->randomNumber(3);
+        $gameId = $faker->randomNumber(1);
+        
+        $prophet = new \Prophecy\Prophet;
+        $gameStub = $prophet->prophesize('TicTac\Domain\Game');
+        $gameStub->hasFinished()->willReturn($hasFinished);
+        $gameStub->getWinnerId()->willReturn($winnerId);
+        
+        $gameRepo = $this->getGameRepo();
+        $gameRepo->findById($gameId)->willReturn($gameStub->reveal());
+        
+        $this->beConstructedWith($this->getUserRepo()->reveal(), $gameRepo->reveal());
+        $this->getStatus($gameId)->shouldBe([
+            'finished'=> $hasFinished,
+            'winnerId' => $winnerId
+       ]); 
+    }
 }

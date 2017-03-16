@@ -51,6 +51,14 @@ class GameService
     }
     
     public function getStatus($gameId) {
+        $game = $this->gameRepository->findById($gameId);
+        if ( ! $game) {
+            throw new EntityNotFoundException("Game", $gameId);
+        }
         
+        return [
+            'finished' => $game->hasFinished(),
+            'winnerId' => $game->getWinnerId() 
+        ];
     }
 }

@@ -5,7 +5,7 @@ namespace spec\TicTac\Service;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class UserServiceSpec extends ObjectBehavior
+class UserServiceSpec extends CommonServiceSpec
 {
     function it_is_initializable()
     {

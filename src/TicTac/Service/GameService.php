@@ -35,7 +35,19 @@ class GameService
     }
     
     public function makeMove($gameId, $userId, $position) {
+        $player = $this->userRepository->findById($userId);
+        if ( ! $player) {
+            throw new EntityNotFoundException("User", $userId);
+        }
         
+        $game = $this->gameRepository->findById($gameId);
+        if ( ! $game) {
+            throw new EntityNotFoundException("Game", $gameId);
+        }
+        
+        $game->makeAMove($userId, $position);
+        $this->gameRepository->save($game);
+        return true;
     }
     
     public function getStatus($gameId) {

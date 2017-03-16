@@ -45,5 +45,59 @@ class GameServiceSpec extends CommonServiceSpec
         $this->startGame($firstUserId, $secondUserId)->shouldBe($gameId);
     }
     
+    function it_should_throw_user_not_found_on_make_move()
+    {
+        $pos = 150;
+        $gameId = 10;
+            
+        $userRepo = $this->getUserRepo();
+        $userRepo->findById(1)->willReturn(false);
+        $this->beConstructedWith($userRepo->reveal(), $this->getGameRepo()->reveal());
+        $this->shouldThrow('\TicTac\Exception\EntityNotFoundException')->duringMakeMove($gameId,1, $pos);        
+    }
     
+    function it_should_throw_game_not_found_on_make_move()
+    {
+        $faker = \Faker\Factory::create();
+        $gameId = $faker->randomNumber(1);
+        $userId = $faker->randomNumber(3);
+        $pos = 3;
+        
+        $userRepo = $this->getUserRepo();
+        $userRepo->findById($userId)->willReturn(new User($userId));
+        
+        $gameRepo = $this->getGameRepo();
+        $gameRepo->findById($gameId)->willReturn(false);
+        
+        $this->beConstructedWith($userRepo->reveal(), $gameRepo->reveal());
+        $this->shouldThrow('\TicTac\Exception\EntityNotFoundException')->duringMakeMove($gameId, $userId, $pos);        
+    }
+    
+    function it_should_make_move()
+    {
+        $faker = \Faker\Factory::create();
+        $gameId = $faker->randomNumber(1);
+        $userId = $faker->randomNumber(3);
+        $otherUserId = $faker->randomNumber(3);
+        $pos = 7;
+        
+        $board = [
+            $userId => [2,4],
+            $otherUserId => [6,8]
+        ];
+        $newBoard = $board;
+        $newBoard[$userId][] = $pos;
+        
+        $game = new Game($userId, $otherUserId, $board);
+        
+        $userRepo = $this->getUserRepo();
+        $userRepo->findById($userId)->willReturn(new User($userId));
+        
+        $gameRepo = $this->getGameRepo();
+        $gameRepo->findById($gameId)->willReturn($game);
+        $gameRepo->save(new Game($userId, $otherUserId, $newBoard))->shouldBeCalled();
+        
+        $this->beConstructedWith($userRepo->reveal(), $gameRepo->reveal());
+        $this->makeMove($gameId, $userId, $pos)->shouldBe(true);        
+    }    
 }

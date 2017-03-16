@@ -90,8 +90,12 @@ class Game
             return false;
         }
         
-        $totalMoves = count($this->board[$firstId]) + count($this->board[$secondId]);
-        return $totalMoves === pow(self::BOARD_SIZE, 2)-1;
+        $movesLeft = count($this->getEmptySquares());
+        
+        return $movesLeft === 0;
+        
+        //$totalMoves = count($this->board[$firstId]) + count($this->board[$secondId]);
+        //return $totalMoves === pow(self::BOARD_SIZE, 2)-1;
     }
     
     public function getNextPlayerId() {
@@ -116,6 +120,42 @@ class Game
         }
         
         return $secondId;
+    }
+    
+    public function getEmptySquares() {
+        $arr1 = array();
+        $arr2 = array();
+        if (!empty($this->board[$this->firstPlayerId])) {
+            $arr1 = $this->board[$this->firstPlayerId];
+        }
+        
+        if (!empty($this->board[$this->secondPlayerId])) {
+            $arr2 = $this->board[$this->secondPlayerId];
+        }
+        
+        return array_diff($this->getAllBoardSquares(), $arr1, $arr2);
+    }
+    
+    public function getAllBoardSquares() {
+        $squares = [];
+        for($row = 0; $row <= self::BOARD_SIZE -1; $row++) {
+            for($col = 0; $col <= self::BOARD_SIZE -1; $col++) {
+                $squares[] = $row*self::BOARD_SIZE + $col;
+            }
+        }
+        return $squares;
+    }
+    
+    public function makeAMove($userId, $position) {
+        if ($userId !== $this->getNextPlayerId()) {
+            throw new \TicTac\Exception\GameNotYourTurnException();
+        }
+        
+        if ( !in_array($position, $this->getEmptySquares())) {
+            throw new \TicTac\Exception\GameInvalidPositionException($position);            
+        }
+
+        $this->board[$userId][] = $position;        
     }
 
 }
